@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPU Scheduling Simulation</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #e8f5ff; /* Soft light blue background */
+            margin: 0;
+            padding: 0;
+            color: #2c3e50; /* Dark slate gray text color */
+        }
+
+        .container {
+            max-width: 750px;
+            margin: 40px auto;
+            background-color: #ffffff; /* White background for the form */
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            text-align: center;
+        }
+
+        h2 {
+            color: #3498db; /* Blue color for headers */
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #34495e; /* Darker text for labels */
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+
+        input[type="text"], input[type="number"], select {
+            padding: 12px;
+            width: 100%;
+            border: 1px solid #3498db; /* Blue border */
+            border-radius: 6px;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.05);
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        input[type="text"]:focus, input[type="number"]:focus, select:focus {
+            border-color: #2980b9; /* Darker blue on focus */
+            outline: none;
+            box-shadow: 0 0 5px rgba(41, 128, 185, 0.3);
+        }
+
+        input[type="submit"] {
+            background-color: #3498db; /* Blue button */
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            font-weight: bold;
+            width: 100%;
+            transition: background-color 0.3s ease;
+            margin-top: 20px;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #2980b9; /* Darker blue on hover */
+        }
+
+        .result {
+            margin-top: 30px;
+            background-color: #f0f9ff; /* Light blue result background */
+            padding: 25px;
+            border-left: 6px solid #3498db; /* Blue left border */
+            border-radius: 8px;
+            color: #2c3e50;
+            word-wrap: break-word;
+            font-size: 1.1rem;
+            text-align: left;
+        }
+
+        .result h3 {
+            margin-top: 0;
+            color: #3498db; /* Blue color for results header */
+        }
+
+        #processInputArea {
+            background-color: #ecf9ff; /* Very light blue for input area */
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        input[type="text"]::placeholder, input[type="number"]::placeholder {
+            color: #b2bec3; /* Placeholder text color */
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            font-size: 1rem;
+            background-color: #ecf9ff; /* Light blue select background */
+            border-radius: 6px;
+            border: 1px solid #3498db; /* Blue border for select */
+            box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .form-group input[type="radio"], .form-group input[type="checkbox"] {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .form-group label {
+            display: inline-block;
+            margin-bottom: 8px;
+            color: #34495e;
+            font-weight: 500;
+            font-size: 1.1rem;
+        }
+
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            h2 {
+                font-size: 2rem;
+            }
+
+            input[type="submit"] {
+                font-size: 1.1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>CPU Scheduling Simulation</h2>
+        <form id="schedulerForm">
+            <div class="form-group">
+                <label for="num_cores">Number of CPU cores:</label>
+                <input type="number" id="num_cores" name="num_cores" min="1" required>
+            </div>
+            <div class="form-group">
+                <label for="compare_algorithms">Do you want to compare multiple scheduling algorithms?</label>
+                <select id="compare_algorithms" name="compare_algorithms" required>
+                    <option value="no">No</option>
+                    <option value="yes">Yes</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Select the scheduling algorithm(s):</label>
+                <div id="algorithmSelection">
+                    <input type="radio" name="algorithm" value="fcfs" id="fcfs" required>
+                    <label for="fcfs">First Come, First Serve</label><br>
+                    <input type="radio" name="algorithm" value="sjf" id="sjf" required>
+                    <label for="sjf">Shortest Job First</label><br>
+                    <input type="radio" name="algorithm" value="priority" id="priority" required>
+                    <label for="priority">Priority Scheduling</label><br>
+                    <input type="radio" name="algorithm" value="rr" id="rr" required>
+                    <label for="rr">Round Robin</label>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="num_processes">Number of processes:</label>
+                <input type="number" id="num_processes" name="num_processes" min="1" required>
+            </div>
+            <div id="processInputArea"></div>
+            <input type="button" value="Run Simulation" style="background-color: #3498db; color: white; padding: 14px; border: none; border-radius: 8px; cursor: pointer; font-size: 1.2rem; font-weight: bold; width: 100%; transition: background-color 0.3s ease; margin-top: 20px;">
+        </form>
+
+        <div id="results" class="result" style="display:none;"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('schedulerForm');
+            const processInputArea = document.getElementById('processInputArea');
+            const compareAlgorithmsSelect = document.getElementById('compare_algorithms');
+            const algorithmSelectionDiv = document.getElementById('algorithmSelection');
+            const resultsDiv = document.getElementById('results');
+
+            compareAlgorithmsSelect.addEventListener('change', () => {
+                if (compareAlgorithmsSelect.value === "yes") {
+                    algorithmSelectionDiv.innerHTML = `
+                        <input type="checkbox" name="algorithm" value="fcfs" id="fcfs">
+                        <label for="fcfs">First Come, First Serve</label><br>
+                        <input type="checkbox" name="algorithm" value="sjf" id="sjf">
+                        <label for="sjf">Shortest Job First</label><br>
+                        <input type="checkbox" name="algorithm" value="priority" id="priority">
+                        <label for="priority">Priority Scheduling</label><br>
+                        <input type="checkbox" name="algorithm" value="rr" id="rr">
+                        <label for="rr">Round Robin</label>
+                    `;
+                } else {
+                    algorithmSelectionDiv.innerHTML = `
+                        <input type="radio" name="algorithm" value="fcfs" id="fcfs" required>
+                        <label for="fcfs">First Come, First Serve</label><br>
+                        <input type="radio" name="algorithm" value="sjf" id="sjf" required>
+                        <label for="sjf">Shortest Job First</label><br>
+                        <input type="radio" name="algorithm" value="priority" id="priority" required>
+                        <label for="priority">Priority Scheduling</label><br>
+                        <input type="radio" name="algorithm" value="rr" id="rr" required>
+                        <label for="rr">Round Robin</label>
+                    `;
+                }
+                updateProcessFields();
+            });
+
+            form.num_processes.addEventListener('input', updateProcessFields);
+
+            function updateProcessFields() {
+                const numProcesses = form.num_processes.value;
+                processInputArea.innerHTML = '';
+                for (let i = 1; i <= numProcesses; i++) {
+                    processInputArea.innerHTML += `
+                        <div class="form-group">
+                            <label>Process ${i} ID:</label>
+                            <input type="text" name="process_id_${i}" placeholder="e.g., P${i}" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Burst time (seconds) for Process ${i}:</label>
+                            <input type="number" name="burst_time_${i}" min="1" required>
+                        </div>`;
+                    if (document.getElementById('priority').checked) {
+                        processInputArea.innerHTML += `
+                            <div class="form-group">
+                                <label>Priority for Process ${i} (higher number = higher priority):</label>
+                                <input type="number" name="priority_${i}" min="1" required>
+                            </div>`;
+                    }
+                }
+                if (document.getElementById('rr').checked) {
+                    processInputArea.innerHTML += `
+                        <div class="form-group">
+                            <label for="quantum">Enter time quantum for Round Robin (in seconds):</label>
+                            <input type="number" id="quantum" name="quantum" min="1" required>
+                        </div>`;
+                }
+            }
+
+            document.querySelector('input[type="button"]').addEventListener('click', () => {
+                const numCores = document.getElementById('num_cores').value;
+                const numProcesses = document.getElementById('num_processes').value;
+                const selectedAlgorithms = Array.from(document.querySelectorAll('input[name="algorithm"]:checked')).map(el => el.value);
+                const processes = [];
+
+                for (let i = 1; i <= numProcesses; i++) {
+                    const process = {
+                        id: `P${i}`,
+                        burst_time: parseInt(document.querySelector(`input[name="burst_time_${i}"]`).value),
+                        priority: document.querySelector(`input[name="priority_${i}"]`) ? parseInt(document.querySelector(`input[name="priority_${i}"]`).value) : 0
+                    };
+                    processes.push(process);
+                }
+
+                const quantum = document.getElementById('quantum') ? parseInt(document.getElementById('quantum').value) : 1;
+
+                // Simulate the scheduling algorithms
+                const results = simulateScheduling(selectedAlgorithms, processes, quantum);
+
+                // Display results
+                displayResults(results);
+            });
+
+            function simulateScheduling(algorithms, processes, quantum) {
+                const results = [];
+                algorithms.forEach(algo => {
+                    let result;
+                    switch (algo) {
+                        case 'fcfs':
+                            result = simulateFCFS(processes);
+                            break;
+                        case 'sjf':
+                            result = simulateSJF(processes);
+                            break;
+                        case 'priority':
+                            result = simulatePriority(processes);
+                            break;
+                        case 'rr':
+                            result = simulateRoundRobin(processes, quantum);
+                            break;
+                    }
+                    results.push(result);
+                });
+                return results;
+            }
+
+            function simulateFCFS(processes) {
+                let waitingTime = 0;
+                let turnaroundTime = 0;
+                const order = [];
+                processes.forEach((process, index) => {
+                    order.push(process.id);
+                    waitingTime += index === 0 ? 0 : processes[index - 1].burst_time;
+                    turnaroundTime += waitingTime + process.burst_time;
+                });
+                const avgWaitingTime = waitingTime / processes.length;
+                const avgTurnaroundTime = turnaroundTime / processes.length;
+                return { algo: 'FCFS', avgWaitingTime, avgTurnaroundTime, order };
+            }
+
+            function simulateSJF(processes) {
+                processes.sort((a, b) => a.burst_time - b.burst_time);
+                let waitingTime = 0;
+                let turnaroundTime = 0;
+                const order = [];
+                processes.forEach((process, index) => {
+                    order.push(process.id);
+                    waitingTime += index === 0 ? 0 : processes[index - 1].burst_time;
+                    turnaroundTime += waitingTime + process.burst_time;
+                });
+                const avgWaitingTime = waitingTime / processes.length;
+                const avgTurnaroundTime = turnaroundTime / processes.length;
+                return { algo: 'SJF', avgWaitingTime, avgTurnaroundTime, order };
+            }
+
+            function simulatePriority(processes) {
+                processes.sort((a, b) => b.priority - a.priority);
+                let waitingTime = 0;
+                let turnaroundTime = 0;
+                const order = [];
+                processes.forEach((process, index) => {
+                    order.push(process.id);
+                    waitingTime += index === 0 ? 0 : processes[index - 1].burst_time;
+                    turnaroundTime += waitingTime + process.burst_time;
+                });
+                const avgWaitingTime = waitingTime / processes.length;
+                const avgTurnaroundTime = turnaroundTime / processes.length;
+                return { algo: 'Priority', avgWaitingTime, avgTurnaroundTime, order };
+            }
+
+            function simulateRoundRobin(processes, quantum) {
+                const queue = [...processes];
+                let time = 0;
+                let waitingTime = 0;
+                let turnaroundTime = 0;
+                const order = [];
+                while (queue.length > 0) {
+                    const process = queue.shift();
+                    order.push(process.id);
+                    if (process.burst_time > quantum) {
+                        time += quantum;
+                        process.burst_time -= quantum;
+                        queue.push(process);
+                    } else {
+                        time += process.burst_time;
+                        waitingTime += time - process.burst_time;
+                        turnaroundTime += time;
+                    }
+                }
+                const avgWaitingTime = waitingTime / processes.length;
+                const avgTurnaroundTime = turnaroundTime / processes.length;
+                return { algo: 'Round Robin', avgWaitingTime, avgTurnaroundTime, order };
+            }
+
+            function displayResults(results) {
+                resultsDiv.style.display = 'block';
+                resultsDiv.innerHTML = '';
+                results.forEach(({ algo, avgWaitingTime, avgTurnaroundTime, order }) => {
+                    resultsDiv.innerHTML += `<h3>${algo}</h3>`;
+                    resultsDiv.innerHTML += `<p>Average Waiting Time: ${avgWaitingTime.toFixed(2)}</p>`;
+                    resultsDiv.innerHTML += `<p>Average Turnaround Time: ${avgTurnaroundTime.toFixed(2)}</p>`;
+                    resultsDiv.innerHTML += `<p>Order of Execution: ${order.join(' -> ')}</p>`;
+                });
+
+                // Determine and display the best algorithm
+                if (results.length > 1) {
+                    const sortedResults = results.sort((a, b) => a.avgWaitingTime - b.avgWaitingTime);
+                    resultsDiv.innerHTML += `<h3>Order of effectiveness based on average waiting time:</h3>`;
+                    sortedResults.forEach(({ algo, avgWaitingTime }) => {
+                        resultsDiv.innerHTML += `<p>${algo}: ${avgWaitingTime.toFixed(2)}</p>`;
+                    });
+                    resultsDiv.innerHTML += `<h3>Best Algorithm: ${sortedResults[0].algo}</h3>`;
+                }
+            }
+        });
+    </script>
+</body>
+</html>
